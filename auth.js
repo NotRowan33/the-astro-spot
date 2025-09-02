@@ -1,4 +1,6 @@
-// --- Step 1: PASTE YOUR FIREBASE CONFIGURATION HERE ---
+// File: auth.js
+
+// --- Your Firebase Configuration ---
 const firebaseConfig = {
   apiKey: "AIzaSyCAhgl6D7fG4EzsyNqXmdIE-W6euiTTy9g",
   authDomain: "the-astro-spot.firebaseapp.com",
@@ -14,13 +16,17 @@ const firebaseConfig = {
 const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
+// Select BOTH navigation containers
 const desktopNav = document.querySelector('.main-nav');
 const mobileNav = document.querySelector('.mobile-nav');
 const errorMessageDiv = document.getElementById('error-message');
 
 // Function to update the navigation based on login state
 const updateNav = (user) => {
+    // Determine which page is currently active for highlighting the link
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    
+    // Define all possible page links
     const links = {
         'Home': 'index.html',
         'About': 'about.html',
@@ -31,21 +37,29 @@ const updateNav = (user) => {
     
     let navHTML = '<ul>';
     for (const [title, url] of Object.entries(links)) {
+        // Hide AI Assistant link if user is not logged in and verified
+        if (title === 'AI Assistant' && (!user || !user.emailVerified)) {
+            continue; 
+        }
         const isActive = (url === currentPage) ? 'class="active"' : '';
         navHTML += `<li><a href="${url}" ${isActive}>${title}</a></li>`;
     }
 
     if (user && user.emailVerified) {
+        // If user is logged in and verified, show Logout button
         navHTML += `<li><a href="#" id="logout-button">Logout</a></li>`;
     } else {
+        // If user is logged out or not verified, show Login button
         const loginActive = (currentPage === 'login.html' || currentPage === 'signup.html') ? 'class="active"' : '';
         navHTML += `<li><a href="login.html" ${loginActive}>Login</a></li>`;
     }
     navHTML += '</ul>';
 
+    // Populate BOTH the desktop and mobile nav containers with the generated HTML
     if(desktopNav) desktopNav.innerHTML = navHTML;
     if(mobileNav) mobileNav.innerHTML = navHTML;
 
+    // Add logout functionality to the dynamically created button
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
         logoutButton.addEventListener('click', (e) => {
@@ -55,9 +69,10 @@ const updateNav = (user) => {
     }
 };
 
-// Listen for authentication state changes
+// Listen for authentication state changes and update nav accordingly
 auth.onAuthStateChanged(user => {
     updateNav(user);
+    // If a verified user lands on login/signup page, redirect them to the homepage
     if (user && user.emailVerified && (window.location.pathname.endsWith('login.html') || window.location.pathname.endsWith('signup.html'))) {
         window.location.href = 'index.html';
     }
@@ -101,7 +116,7 @@ if (loginForm) {
                     // Signed in successfully, onAuthStateChanged will handle redirect
                     console.log('User logged in:', userCredential.user);
                 } else {
-                    auth.signOut();
+                    auth.signOut(); // Log them out immediately
                     errorMessageDiv.textContent = 'Your email has not been verified. Please check your inbox for the verification link.';
                     errorMessageDiv.style.display = 'block';
                 }

@@ -13,12 +13,12 @@
     <header class="site-header">
         <div class="container">
             <a href="index.html" class="site-logo">The Astro Spot</a>
-            <nav class="main-nav">
-                </nav>
+            <nav class="main-nav"></nav> <div class="hamburger-menu" id="hamburger-menu">
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            </div>
         </div>
     </header>
-
-    <main class="container">
+    <nav class="mobile-nav" id="mobile-nav"></nav> <main class="container">
         <div class="fade-in-section">
              <div class="chat-container">
                 <h1>Astro-Assistant</h1>
@@ -46,6 +46,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="auth.js"></script>
     <script>
+        // --- Full AI Assistant JavaScript ---
         const chatLog = document.getElementById('chat-log');
         const promptInput = document.getElementById('prompt-input');
         const submitButton = document.getElementById('submit-button');
@@ -106,11 +107,14 @@
         async function askAI() {
             const userPrompt = promptInput.value.trim();
             if (!userPrompt) return;
-
-            // This requires the user to be logged in and verified.
+            
             const currentUser = firebase.auth().currentUser;
             if (!currentUser || !currentUser.emailVerified) {
-                chatLog.innerHTML += '<div class="message model-message">Please log in and verify your email to use the AI Assistant.</div>';
+                const errorEl = document.createElement('div');
+                errorEl.classList.add('message', 'model-message');
+                errorEl.innerHTML = `Please <a href="login.html" style="color: var(--primary-color); font-weight: bold;">log in</a> and verify your email to use the AI Assistant.`;
+                chatLog.appendChild(errorEl);
+                chatLog.scrollTop = chatLog.scrollHeight;
                 return;
             }
 
@@ -123,7 +127,7 @@
             submitButton.disabled = true;
             clearButton.disabled = true;
             
-            const apiURL = `/api/ask`;
+            const apiURL = `/api/ask`; // Use relative URL for Vercel
 
             try {
                 const response = await fetch(apiURL, {
