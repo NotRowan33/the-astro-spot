@@ -14,40 +14,21 @@
         <div class="container">
             <a href="index.html" class="site-logo">The Astro Spot</a>
             <nav class="main-nav">
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="about.html">About</a></li>
-                    <li><a href="blogs.html">Blog</a></li>
-                    <li><a href="assistant.html" class="active">AI Assistant</a></li>
-                    <li><a href="donations.html">Support</a></li>
-                </ul>
-            </nav>
+                </nav>
         </div>
     </header>
 
     <main class="container">
-        <div class="fade-in-section">
-             <div class="chat-container">
-                <h1>Astro-Assistant</h1>
-                <div class="chat-log" id="chat-log"></div>
-                <div class="input-area">
-                    <textarea id="prompt-input" placeholder="Ask a question..."></textarea>
-                    <div class="button-container">
-                         <button id="clear-button">Clear</button>
-                         <button id="submit-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="white"><path d="M120-160v-240l320-80-320-80v-240l760 320-760 320Z"/></svg>
-                         </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+        </main>
 
     <footer class="site-footer">
-        <p>&copy; 2025 The Astro Spot. All Rights Reserved.</p>
+        <p>&copy; 2025 Rowan. All Rights Reserved.</p>
     </footer>
 
     <script src="animations.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="auth.js"></script>
     <script>
         const chatLog = document.getElementById('chat-log');
         const promptInput = document.getElementById('prompt-input');
