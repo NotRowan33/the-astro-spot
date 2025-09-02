@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - The Astro Spot</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="site-logo">The Astro Spot</a>
+            <nav class="main-nav">
+                 <!-- Navigation will be updated by auth.js -->
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="auth-form-container glass-panel">
+            <h2>Create an Account</h2>
+            <div id="error-message" class="error-message"></div>
+            <form id="signup-form" class="auth-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" minlength="6" required>
+                </div>
+                <button type="submit">Sign Up</button>
+            </form>
+            <p>Already have an account? <a href="login.html">Log In</a></p>
+        </div>
+    </main>
+
+    <!-- The core Firebase JS SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <!-- Add the Authentication service -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <!-- Your custom auth logic -->
+    <script src="auth.js"></script>
+</body>
+</html>
+</body>
+</html>

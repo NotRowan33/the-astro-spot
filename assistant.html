@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant - The Astro Spot</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="site-logo">The Astro Spot</a>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="blogs.html">Blog</a></li>
+                    <li><a href="assistant.html" class="active">AI Assistant</a></li>
+                    <li><a href="donations.html">Support</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="fade-in-section">
+             <div class="chat-container">
+                <h1>Astro-Assistant</h1>
+                <div class="chat-log" id="chat-log"></div>
+                <div class="input-area">
+                    <textarea id="prompt-input" placeholder="Ask a question..."></textarea>
+                    <div class="button-container">
+                         <button id="clear-button">Clear</button>
+                         <button id="submit-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="white"><path d="M120-160v-240l320-80-320-80v-240l760 320-760 320Z"/></svg>
+                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2025 The Astro Spot. All Rights Reserved.</p>
+    </footer>
+
+    <script src="animations.js"></script>
+    <script>
+        const chatLog = document.getElementById('chat-log');
+        const promptInput = document.getElementById('prompt-input');
+        const submitButton = document.getElementById('submit-button');
+        const clearButton = document.getElementById('clear-button');
+        const markdownConverter = new showdown.Converter();
+
+        let chatHistory = [];
+        
+        function saveHistory() {
+            localStorage.setItem('astro_chat_history_v2', JSON.stringify(chatHistory));
+        }
+
+        function loadHistory() {
+            const savedHistory = localStorage.getItem('astro_chat_history_v2');
+            if (savedHistory) {
+                chatHistory = JSON.parse(savedHistory);
+            } else {
+                chatHistory = [
+                    { "role": "model", "parts": [{ "text": "Hello! I'm Astro-Assistant. Ask me anything about the cosmos or astrophotography." }] }
+                ];
+            }
+            renderChatHistory();
+        }
+
+        function renderChatHistory() {
+            chatLog.innerHTML = '';
+            // Now we render ALL messages, as the first one is our welcome message.
+            for (const message of chatHistory) {
+                const messageEl = document.createElement('div');
+                messageEl.classList.add('message');
+                messageEl.classList.add(message.role === 'user' ? 'user-message' : 'model-message');
+                
+                if (message.role === 'model') {
+                    messageEl.innerHTML = markdownConverter.makeHtml(message.parts[0].text);
+                } else {
+                    messageEl.textContent = message.parts[0].text;
+                }
+                chatLog.appendChild(messageEl);
+            }
+            chatLog.scrollTop = chatLog.scrollHeight; 
+        }
+        
+        function clearChat() {
+            chatHistory = [
+                 { "role": "model", "parts": [{ "text": "Hello! I'm Astro-Assistant. Ask me anything about the cosmos or astrophotography." }] }
+            ];
+            saveHistory();
+            renderChatHistory();
+        }
+
+        function showLoadingIndicator() {
+            const container = document.createElement('div');
+            container.style.alignSelf = 'flex-start';
+            container.innerHTML = `<div class="message model-message" style="display: inline-flex; gap: 8px; align-items: center;"><div style="width: 10px; height: 10px; background-color: #7f8c8d; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; animation-delay: -0.32s;"></div><div style="width: 10px; height: 10px; background-color: #7f8c8d; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; animation-delay: -0.16s;"></div><div style="width: 10px; height: 10px; background-color: #7f8c8d; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both;"></div></div>`;
+            chatLog.appendChild(container);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        async function askAI() {
+            const userPrompt = promptInput.value.trim();
+            if (!userPrompt) return;
+
+            chatHistory.push({ "role": "user", "parts": [{ "text": userPrompt }] });
+            promptInput.value = '';
+            renderChatHistory();
+            showLoadingIndicator();
+            saveHistory();
+            
+            submitButton.disabled = true;
+            clearButton.disabled = true;
+            
+            const apiURL = \/api/ask`;`
+
+            try {
+                const response = await fetch(apiURL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ "history": chatHistory })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const modelResponse = data.response;
+                
+                chatHistory.push({ "role": "model", "parts": [{ "text": modelResponse }] });
+                renderChatHistory();
+                saveHistory();
+
+            } catch (error) {
+                renderChatHistory();
+                const errorEl = document.createElement('div');
+                errorEl.classList.add('message', 'model-message');
+                errorEl.innerHTML = `Sorry, an error occurred: ${error.message}`;
+                chatLog.appendChild(errorEl);
+                console.error('Error:', error);
+            } finally {
+                submitButton.disabled = false;
+                clearButton.disabled = false;
+            }
+        }
+
+        // Event Listeners
+        submitButton.addEventListener('click', askAI);
+        clearButton.addEventListener('click', clearChat);
+        promptInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                askAI();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', loadHistory);
+    </script>
+</body>
+</html>

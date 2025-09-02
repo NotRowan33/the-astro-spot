@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - The Astro Spot</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="site-logo">The Astro Spot</a>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html" class="active">Home</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="blogs.html">Blog</a></li>
+                    <li><a href="assistant.html">AI Assistant</a></li>
+		    <li><a href="donations.html">Support</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+    <div class="hero container">
+        <h1 class="fade-in-section">The Astro Spot</h1>
+        <p class="fade-in-section">Your home for astrophotography, beginner-friendly guides, and a powerful AI assistant to help you on your own astrophotography adventures.</p>
+        <a href="blogs.html" class="cta-button fade-in-section">Start Exploring</a>
+    </div>
+
+    <div class="container">
+        <h2 style="text-align: center;" class="fade-in-section">Featured Post</h2>
+        <div class="content-grid" style="grid-template-columns: 1fr;"> <!-- Centering the single card -->
+            <div class="glass-card fade-in-section" style="max-width: 450px; margin: 0 auto;">
+                 <img src="seestar-s50-cover.webp" alt="The Seestar S50 telescope against a starry sky">
+                 <div class="card-content">
+                     <h3>My Seestar S50 Review: A Beginner's Gateway to the Cosmos</h3>
+                     <p>My honest review after a month of use, breaking down the features, limitations, and who this powerful smart telescope is really for.</p>
+                     <a href="seestar-s50-review.html">Read More &rarr;</a>
+                 </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+    <footer class="site-footer">
+        <p>&copy; 2025 The Astro Spot. All Rights Reserved.</p>
+    </footer>
+
+    <script src="animations.js"></script>
+    <!-- The core Firebase JS SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <!-- Add the Authentication service -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <!-- Your custom auth logic -->
+    <script src="auth.js"></script>
+</body>
+</html>
