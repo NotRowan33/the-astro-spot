@@ -14,39 +14,38 @@ const firebaseConfig = {
 const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
-const navElement = document.querySelector('.main-nav');
-const errorMessageDiv = document.getElementById('error-message'); // For login/signup pages
+const desktopNav = document.querySelector('.main-nav');
+const mobileNav = document.querySelector('.mobile-nav');
+const errorMessageDiv = document.getElementById('error-message');
 
 // Function to update the navigation based on login state
 const updateNav = (user) => {
-    let navHTML = '';
-    if (user && user.emailVerified) {
-        // --- User is logged in AND verified ---
-        navHTML = `
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="blogs.html">Blog</a></li>
-                <li><a href="assistant.html">AI Assistant</a></li>
-                <li><a href="donations.html">Support</a></li>
-                <li><a href="#" id="logout-button">Logout</a></li>
-            </ul>
-        `;
-    } else {
-        // --- User is logged out OR not verified ---
-        navHTML = `
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="blogs.html">Blog</a></li>
-                <li><a href="donations.html">Support</a></li>
-                <li><a href="login.html">Login</a></li>
-            </ul>
-        `;
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const links = {
+        'Home': 'index.html',
+        'About': 'about.html',
+        'Blog': 'blogs.html',
+        'AI Assistant': 'assistant.html',
+        'Support': 'donations.html'
+    };
+    
+    let navHTML = '<ul>';
+    for (const [title, url] of Object.entries(links)) {
+        const isActive = (url === currentPage) ? 'class="active"' : '';
+        navHTML += `<li><a href="${url}" ${isActive}>${title}</a></li>`;
     }
-    navElement.innerHTML = navHTML;
 
-    // Add logout functionality if the button exists
+    if (user && user.emailVerified) {
+        navHTML += `<li><a href="#" id="logout-button">Logout</a></li>`;
+    } else {
+        const loginActive = (currentPage === 'login.html' || currentPage === 'signup.html') ? 'class="active"' : '';
+        navHTML += `<li><a href="login.html" ${loginActive}>Login</a></li>`;
+    }
+    navHTML += '</ul>';
+
+    if(desktopNav) desktopNav.innerHTML = navHTML;
+    if(mobileNav) mobileNav.innerHTML = navHTML;
+
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
         logoutButton.addEventListener('click', (e) => {
@@ -60,7 +59,6 @@ const updateNav = (user) => {
 auth.onAuthStateChanged(user => {
     updateNav(user);
     if (user && user.emailVerified && (window.location.pathname.endsWith('login.html') || window.location.pathname.endsWith('signup.html'))) {
-        // If a verified user is on login/signup page, redirect to home
         window.location.href = 'index.html';
     }
 });
@@ -75,11 +73,11 @@ if (signupForm) {
         
         auth.createUserWithEmailAndPassword(email, password)
             .then((userCredential) => {
-                // --- NEW: Send verification email ---
                 userCredential.user.sendEmailVerification()
                     .then(() => {
-                        // Email sent.
                         signupForm.innerHTML = `<p style="color: var(--primary-color);">Account created successfully! A verification link has been sent to your email address. Please check your inbox and verify your account before logging in.</p>`;
+                        const authContainer = document.querySelector('.auth-form-container p');
+                        if (authContainer) authContainer.style.display = 'none';
                     });
             })
             .catch((error) => {
@@ -99,13 +97,11 @@ if (loginForm) {
 
         auth.signInWithEmailAndPassword(email, password)
             .then((userCredential) => {
-                // --- NEW: Check if email is verified ---
                 if (userCredential.user.emailVerified) {
                     // Signed in successfully, onAuthStateChanged will handle redirect
                     console.log('User logged in:', userCredential.user);
                 } else {
-                    // User's email is not verified
-                    auth.signOut(); // Log them out immediately
+                    auth.signOut();
                     errorMessageDiv.textContent = 'Your email has not been verified. Please check your inbox for the verification link.';
                     errorMessageDiv.style.display = 'block';
                 }

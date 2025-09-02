@@ -12,23 +12,18 @@
     <header class="site-header">
         <div class="container">
             <a href="index.html" class="site-logo">The Astro Spot</a>
-            <nav class="main-nav">
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="about.html">About</a></li>
-                    <li><a href="blogs.html" class="active">Blog</a></li>
-                    <li><a href="assistant.html">AI Assistant</a></li>
-		    <li><a href="donations.html">Support</a></li>
-                </ul>
-            </nav>
+            <nav class="main-nav"></nav>
+            <div class="hamburger-menu" id="hamburger-menu">
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            </div>
         </div>
     </header>
+    <nav class="mobile-nav" id="mobile-nav"></nav>
 
     <main class="container">
         <h1 class="fade-in-section">Latest Posts</h1>
         
         <div class="content-grid">
-            <!-- Your First Blog Post -->
             <div class="glass-card fade-in-section">
                 <img src="seestar-s50-cover.webp" alt="The Seestar S50 telescope against a starry sky">
                 <div class="card-content">
@@ -37,9 +32,6 @@
                     <a href="seestar-s50-review.html">Read More &rarr;</a>
                 </div>
             </div>
-
-            <!-- New blog post cards will be added here in the future -->
-
         </div>
     </main>
 
@@ -49,11 +41,8 @@
 
     <script src="animations.js"></script>
     <script src="menu.js"></script>
-    <!-- The core Firebase JS SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <!-- Add the Authentication service -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <!-- Your custom auth logic -->
     <script src="auth.js"></script>
 </body>
 </html>
