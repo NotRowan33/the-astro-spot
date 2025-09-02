@@ -19,10 +19,25 @@
     </header>
 
     <main class="container">
-        </main>
+        <div class="fade-in-section">
+             <div class="chat-container">
+                <h1>Astro-Assistant</h1>
+                <div class="chat-log" id="chat-log"></div>
+                <div class="input-area">
+                    <textarea id="prompt-input" placeholder="Ask a question..."></textarea>
+                    <div class="button-container">
+                         <button id="clear-button">Clear</button>
+                         <button id="submit-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="white"><path d="M120-160v-240l320-80-320-80v-240l760 320-760 320Z"/></svg>
+                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <footer class="site-footer">
-        <p>&copy; 2025 Rowan. All Rights Reserved.</p>
+        <p>&copy; 2025 The Astro Spot. All Rights Reserved.</p>
     </footer>
 
     <script src="animations.js"></script>
@@ -56,7 +71,6 @@
 
         function renderChatHistory() {
             chatLog.innerHTML = '';
-            // Now we render ALL messages, as the first one is our welcome message.
             for (const message of chatHistory) {
                 const messageEl = document.createElement('div');
                 messageEl.classList.add('message');
@@ -92,6 +106,13 @@
             const userPrompt = promptInput.value.trim();
             if (!userPrompt) return;
 
+            // This requires the user to be logged in and verified.
+            const currentUser = firebase.auth().currentUser;
+            if (!currentUser || !currentUser.emailVerified) {
+                chatLog.innerHTML += '<div class="message model-message">Please log in and verify your email to use the AI Assistant.</div>';
+                return;
+            }
+
             chatHistory.push({ "role": "user", "parts": [{ "text": userPrompt }] });
             promptInput.value = '';
             renderChatHistory();
@@ -101,7 +122,7 @@
             submitButton.disabled = true;
             clearButton.disabled = true;
             
-            const apiURL = `/api/ask`;
+            const apiURL = `http://127.0.0.1:5000/api/ask`; // Remember to change for Vercel
 
             try {
                 const response = await fetch(apiURL, {
