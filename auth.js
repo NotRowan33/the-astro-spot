@@ -46,7 +46,7 @@ const updateNav = (user) => {
     }
 
     if (user && user.emailVerified) {
-        // If user is logged in and verified, show Logout button
+        // If user is logged in and verified, show Logout button with an ID
         navHTML += `<li><a href="#" id="logout-button">Logout</a></li>`;
     } else {
         // If user is logged out or not verified, show Login button
@@ -59,12 +59,16 @@ const updateNav = (user) => {
     if(desktopNav) desktopNav.innerHTML = navHTML;
     if(mobileNav) mobileNav.innerHTML = navHTML;
 
-    // Add logout functionality to the dynamically created button
-    const logoutButton = document.getElementById('logout-button');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            auth.signOut();
+    // --- THIS IS THE FIX ---
+    // Find ALL logout buttons (for both desktop and mobile) using querySelectorAll
+    const logoutButtons = document.querySelectorAll('#logout-button');
+    if (logoutButtons) {
+        // Loop through each button found and add the click event
+        logoutButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                auth.signOut();
+            });
         });
     }
 };
@@ -72,7 +76,6 @@ const updateNav = (user) => {
 // Listen for authentication state changes and update nav accordingly
 auth.onAuthStateChanged(user => {
     updateNav(user);
-    // If a verified user lands on login/signup page, redirect them to the homepage
     if (user && user.emailVerified && (window.location.pathname.endsWith('login.html') || window.location.pathname.endsWith('signup.html'))) {
         window.location.href = 'index.html';
     }
