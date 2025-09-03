@@ -6,6 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from googleapiclient.discovery import build
 import google.generativeai as genai
+from datetime import datetime
 
 load_dotenv()
 app = Flask(__name__)
@@ -18,14 +19,13 @@ except Exception as e:
     print(f"CRITICAL ERROR: Failed to configure Gemini API. Check your GEMINI_API_KEY. Error: {e}")
 
 def get_web_context(query):
-    """Searches the web and scrapes the top result for context."""
     print(f"--- [BACKEND LOG] Searching web for: '{query}' ---")
     try:
         api_key = os.getenv("GOOGLE_API_KEY")
         search_engine_id = os.getenv("SEARCH_ENGINE_ID")
         
         if not api_key or not search_engine_id:
-            print("--- [BACKEND LOG] WARNING: Google Search API keys not found. Skipping web search. ---")
+            print("--- [BACKEND LOG] WARNING: Google Search API keys not found. ---")
             return None
 
         service = build("customsearch", "v1", developerKey=api_key)
@@ -41,8 +41,8 @@ def get_web_context(query):
             response.raise_for_status()
             
             soup = BeautifulSoup(response.text, 'html.parser')
-            for element in soup(["script", "style", "header", "footer", "nav"]):
-                element.extract() # Remove irrelevant parts of the page
+            for element in soup(["script", "style", "header", "footer", "nav", "aside"]):
+                element.extract()
             
             text = soup.get_text(separator=' ', strip=True)
             print("--- [BACKEND LOG] Successfully scraped web context. ---")
@@ -58,15 +58,17 @@ def get_web_context(query):
 def ask_assistant():
     print("\n--- [BACKEND LOG] New request received. ---")
     data = request.get_json()
-    if not data or 'history' not in data:
-        return jsonify({"error": "Invalid request"}), 400
+    chat_history = data.get('history', [])
+    if not chat_history:
+        return jsonify({"error": "Invalid request: history is missing"}), 400
 
-    chat_history = data['history']
     user_question = chat_history[-1]['parts'][0]['text']
+    
+    # Get the current date and time
+    current_date = datetime.now().strftime("%A, %B %d, %Y")
 
-    # --- NEW: INTELLIGENT SEARCH TRIGGER ---
-    # Only search the web for factual questions, not simple greetings.
-    search_keywords = ['what', 'who', 'when', 'where', 'why', 'how', 'specs', 'list', 'explain', 'compare']
+    # Decide if a web search is necessary
+    search_keywords = ['what are', 'specs', 'specifications', 'who is', 'when is', 'price of']
     should_search = any(keyword in user_question.lower() for keyword in search_keywords)
     
     web_context = None
@@ -75,32 +77,43 @@ def ask_assistant():
     else:
         print("--- [BACKEND LOG] Conversational query. Skipping web search. ---")
 
-    # The AI's core persona
-    system_prompt = """You are Astro-Assistant, a friendly and expert guide to the universe for amateur stargazers and astrophotographers. Your primary function is to provide accurate, factual information about astronomy and related technology. You must format your responses using standard Markdown. You must NEVER mention that you are an AI."""
+    # This is the new, much more powerful system prompt
+    system_prompt = f"""You are Astro-Assistant, an expert AI specializing in astronomy and astrophotography.
+    The current date is {current_date}. Use this for any time-sensitive questions like 'what can I see tonight?'.
+    You have been provided with real-time web search results as 'Web Context' when necessary.
+    You MUST prioritize the information in the 'Web Context' to answer the user's question accurately.
+    If the Web Context is empty or does not contain the answer, you may use your own knowledge.
+    Always format your responses using Markdown for clarity.
+    You must NEVER mention that you are an AI.
+    """
 
-    final_prompt = user_question
+    # We build a new, clean set of contents for the API call
+    api_contents = [
+        {"role": "user", "parts": [{"text": system_prompt}]},
+        {"role": "model", "parts": [{"text": "Understood. I am ready to assist."}]}
+    ]
+
+    # Add the user's actual conversation history
+    # We strip the AI's welcome message from the history sent to the API
+    if len(chat_history) > 1:
+        api_contents.extend(chat_history[1:])
+
+    # If we have web context, we modify the last user question to include it.
     if web_context:
-        # If we found web context, we create an enhanced prompt
-        final_prompt = f"""Using the following up-to-date web context, please provide a comprehensive answer to the user's question.
+        final_user_message = api_contents[-1]['parts'][0]['text']
+        enhanced_prompt = f"""Based on the following up-to-date web context, please provide a comprehensive answer to the user's question.
         
         Web Context:
         ---
         {web_context}
         ---
         
-        User's Question: {user_question}"""
-    
-    # Build the final history for the API call
-    api_chat_history = [
-        {"role": "user", "parts": [{"text": system_prompt}]},
-        {"role": "model", "parts": [{"text": "Understood. I am Astro-Assistant, ready to help."}]}
-    ]
-    api_chat_history.extend(chat_history[:-1]) # Add previous conversation for context
-    api_chat_history.append({"role": "user", "parts": [{"text": final_prompt}]})
+        User's Question: {final_user_message}"""
+        api_contents[-1]['parts'][0]['text'] = enhanced_prompt
 
     try:
         model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(api_chat_history)
+        response = model.generate_content(api_contents)
         print("--- [BACKEND LOG] Successfully got response from Gemini. ---")
         return jsonify({"response": response.text})
     except Exception as e:
