@@ -1,6 +1,4 @@
 // File: auth.js
-
-// --- Your Firebase Configuration ---
 const firebaseConfig = {
   apiKey: "AIzaSyCAhgl6D7fG4EzsyNqXmdIE-W6euiTTy9g",
   authDomain: "the-astro-spot.firebaseapp.com",
@@ -10,23 +8,16 @@ const firebaseConfig = {
   appId: "1:1085270741987:web:c08ae3b40b14f36bb846d6",
   measurementId: "G-WC15S5GD6E"
 };
-// ---------------------------------------------------------
 
-// Initialize Firebase
 const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
-// Select BOTH navigation containers
 const desktopNav = document.querySelector('.main-nav');
 const mobileNav = document.querySelector('.mobile-nav');
 const errorMessageDiv = document.getElementById('error-message');
 
-// Function to update the navigation based on login state
 const updateNav = (user) => {
-    // Determine which page is currently active for highlighting the link
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    
-    // Define all possible page links
     const links = {
         'Home': 'index.html',
         'About': 'about.html',
@@ -37,29 +28,26 @@ const updateNav = (user) => {
     
     let navHTML = '<ul>';
     for (const [title, url] of Object.entries(links)) {
+        if (title === 'AI Assistant' && (!user || !user.emailVerified)) {
+            continue; 
+        }
         const isActive = (url === currentPage) ? 'class="active"' : '';
         navHTML += `<li><a href="${url}" ${isActive}>${title}</a></li>`;
     }
 
     if (user && user.emailVerified) {
-        // If user is logged in and verified, show Logout button with an ID
         navHTML += `<li><a href="#" id="logout-button">Logout</a></li>`;
     } else {
-        // If user is logged out or not verified, show Login button
         const loginActive = (currentPage === 'login.html' || currentPage === 'signup.html') ? 'class="active"' : '';
         navHTML += `<li><a href="login.html" ${loginActive}>Login</a></li>`;
     }
     navHTML += '</ul>';
 
-    // Populate BOTH the desktop and mobile nav containers with the generated HTML
     if(desktopNav) desktopNav.innerHTML = navHTML;
     if(mobileNav) mobileNav.innerHTML = navHTML;
 
-    // --- THIS IS THE FIX ---
-    // Find ALL logout buttons (for both desktop and mobile) using querySelectorAll
     const logoutButtons = document.querySelectorAll('#logout-button');
     if (logoutButtons) {
-        // Loop through each button found and add the click event
         logoutButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -69,7 +57,6 @@ const updateNav = (user) => {
     }
 };
 
-// Listen for authentication state changes and update nav accordingly
 auth.onAuthStateChanged(user => {
     updateNav(user);
     if (user && user.emailVerified && (window.location.pathname.endsWith('login.html') || window.location.pathname.endsWith('signup.html'))) {
@@ -77,14 +64,12 @@ auth.onAuthStateChanged(user => {
     }
 });
 
-// --- Logic for Signup Page ---
 const signupForm = document.getElementById('signup-form');
 if (signupForm) {
     signupForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const email = signupForm.email.value;
         const password = signupForm.password.value;
-        
         auth.createUserWithEmailAndPassword(email, password)
             .then((userCredential) => {
                 userCredential.user.sendEmailVerification()
@@ -101,21 +86,18 @@ if (signupForm) {
     });
 }
 
-// --- Logic for Login Page ---
 const loginForm = document.getElementById('login-form');
 if (loginForm) {
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const email = loginForm.email.value;
         const password = loginForm.password.value;
-
         auth.signInWithEmailAndPassword(email, password)
             .then((userCredential) => {
                 if (userCredential.user.emailVerified) {
-                    // Signed in successfully, onAuthStateChanged will handle redirect
                     console.log('User logged in:', userCredential.user);
                 } else {
-                    auth.signOut(); // Log them out immediately
+                    auth.signOut();
                     errorMessageDiv.textContent = 'Your email has not been verified. Please check your inbox for the verification link.';
                     errorMessageDiv.style.display = 'block';
                 }

@@ -7,19 +7,22 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/showdown/dist/showdown.min.js"></script>
-<script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 
     <header class="site-header">
         <div class="container">
             <a href="index.html" class="site-logo">The Astro Spot</a>
-            <nav class="main-nav"></nav> <div class="hamburger-menu" id="hamburger-menu">
+            <nav class="main-nav"></nav>
+            <div class="hamburger-menu" id="hamburger-menu">
                 <div class="bar"></div><div class="bar"></div><div class="bar"></div>
             </div>
         </div>
     </header>
-    <nav class="mobile-nav" id="mobile-nav"></nav> <main class="container">
+    <nav class="mobile-nav" id="mobile-nav"></nav>
+
+    <main class="container">
         <div class="fade-in-section">
              <div class="chat-container">
                 <h1>Astro-Assistant</h1>
@@ -46,7 +49,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="auth.js"></script>
-    <script src="protect.js"></script>
     <script>
         const chatLog = document.getElementById('chat-log');
         const promptInput = document.getElementById('prompt-input');
@@ -56,29 +58,68 @@
 
         let chatHistory = [];
         
-        // --- (saveHistory, loadHistory, renderChatHistory, clearChat, showLoadingIndicator functions remain the same) ---
-        function saveHistory() { /* ... */ }
-        function loadHistory() { /* ... */ }
-        function renderChatHistory() { /* ... */ }
-        function clearChat() { /* ... */ }
-        function showLoadingIndicator() { /* ... */ }
+        function saveHistory() {
+            localStorage.setItem('astro_chat_history_v2', JSON.stringify(chatHistory));
+        }
+
+        function loadHistory() {
+            const savedHistory = localStorage.getItem('astro_chat_history_v2');
+            if (savedHistory) {
+                chatHistory = JSON.parse(savedHistory);
+            } else {
+                chatHistory = [
+                    { "role": "model", "parts": [{ "text": "Hello! I'm Astro-Assistant. Ask me anything about the cosmos or astrophotography." }] }
+                ];
+            }
+            renderChatHistory();
+        }
+
+        function renderChatHistory() {
+            chatLog.innerHTML = '';
+            for (const message of chatHistory) {
+                const messageEl = document.createElement('div');
+                messageEl.classList.add('message');
+                messageEl.classList.add(message.role === 'user' ? 'user-message' : 'model-message');
+                
+                if (message.role === 'model') {
+                    messageEl.innerHTML = markdownConverter.makeHtml(message.parts[0].text);
+                } else {
+                    messageEl.textContent = message.parts[0].text;
+                }
+                chatLog.appendChild(messageEl);
+            }
+            chatLog.scrollTop = chatLog.scrollHeight; 
+        }
+        
+        function clearChat() {
+            chatHistory = [
+                 { "role": "model", "parts": [{ "text": "Hello! I'm Astro-Assistant. Ask me anything about the cosmos or astrophotography." }] }
+            ];
+            saveHistory();
+            renderChatHistory();
+        }
+
+        function showLoadingIndicator() {
+            const container = document.createElement('div');
+            container.style.alignSelf = 'flex-start';
+            container.innerHTML = `<div class="message model-message" style="display: inline-flex; gap: 8px; align-items: center;"><div style="width: 10px; height: 10px; background-color: #7f8c8d; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; animation-delay: -0.32s;"></div><div style="width: 10px; height: 10px; background-color: #7f8c8d; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; animation-delay: -0.16s;"></div><div style="width: 10px; height: 10px; background-color: #7f8c8d; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both;"></div></div>`;
+            chatLog.appendChild(container);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
 
         async function askAI() {
             const userPrompt = promptInput.value.trim();
             if (!userPrompt) return;
-
-            // --- NEW LOGIN CHECK ---
+            
             const currentUser = firebase.auth().currentUser;
             if (!currentUser || !currentUser.emailVerified) {
-                // If the user is not logged in, show a message and stop.
                 const errorEl = document.createElement('div');
                 errorEl.classList.add('message', 'model-message');
                 errorEl.innerHTML = `Please <a href="login.html" style="color: var(--primary-color); font-weight: bold;">log in</a> and verify your email to use the AI Assistant.`;
                 chatLog.appendChild(errorEl);
                 chatLog.scrollTop = chatLog.scrollHeight;
-                return; // Stop the function here
+                return;
             }
-            // --- END OF CHECK ---
 
             chatHistory.push({ "role": "user", "parts": [{ "text": userPrompt }] });
             promptInput.value = '';
@@ -89,7 +130,7 @@
             submitButton.disabled = true;
             clearButton.disabled = true;
             
-            const apiURL = `/api/ask`; // Use relative URL for Vercel
+            const apiURL = `/api/ask`;
 
             try {
                 const response = await fetch(apiURL, {
@@ -111,7 +152,7 @@
                 saveHistory();
 
             } catch (error) {
-                renderChatHistory();
+                renderChatHistory(); // Remove loading indicator
                 const errorEl = document.createElement('div');
                 errorEl.classList.add('message', 'model-message');
                 errorEl.innerHTML = `Sorry, an error occurred: ${error.message}`;
@@ -123,10 +164,16 @@
             }
         }
 
-        // --- (Event Listeners and DOMContentLoaded remain the same) ---
+        // Event Listeners
         submitButton.addEventListener('click', askAI);
         clearButton.addEventListener('click', clearChat);
-        promptInput.addEventListener('keydown', (event) => { /* ... */ });
+        promptInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                askAI();
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', loadHistory);
     </script>
 </body>
