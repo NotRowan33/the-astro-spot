@@ -128,3 +128,20 @@ textarea { flex-grow: 1; min-height: 52px; background-color: var(--background-co
     .main-nav a.active { color: var(--text-color); }
     .content-grid { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
 }
+
+.blog-image-container { 
+    margin: 2rem 0; /* Space above and below images */
+    text-align: center; /* Center the image and caption */
+}
+.blog-image-container img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+}
+.blog-image-container figcaption {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    font-style: italic;
+}
