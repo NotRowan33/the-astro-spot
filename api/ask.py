@@ -112,7 +112,7 @@ def ask_assistant():
         api_contents[-1]['parts'][0]['text'] = enhanced_prompt
 
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content(api_contents)
         print("--- [BACKEND LOG] Successfully got response from Gemini. ---")
         return jsonify({"response": response.text})
