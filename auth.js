@@ -28,9 +28,6 @@ const updateNav = (user) => {
     
     let navHTML = '<ul>';
     for (const [title, url] of Object.entries(links)) {
-        if (title === 'AI Assistant' && (!user || !user.emailVerified)) {
-            continue; 
-        }
         const isActive = (url === currentPage) ? 'class="active"' : '';
         navHTML += `<li><a href="${url}" ${isActive}>${title}</a></li>`;
     }
